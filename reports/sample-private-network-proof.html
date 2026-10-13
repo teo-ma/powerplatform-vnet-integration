@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>私网路径证据 · 公开脱敏示例</title>
+  <script>
+    (() => {
+      const param = new URLSearchParams(window.location.search).get("scoutTheme");
+      const theme =
+        param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: light;
+      --cp-bg: #f7f4ef;
+      --cp-bg-elevated: #fcfbf8;
+      --cp-surface: #ffffff;
+      --cp-surface-soft: #f5f5f5;
+      --cp-border: #dedede;
+      --cp-border-strong: #919191;
+      --cp-text: #242424;
+      --cp-text-muted: #5c5c5c;
+      --cp-text-soft: #6f6f6f;
+      --cp-accent: #b11f4b;
+      --cp-accent-hover: #9a1a41;
+      --cp-accent-soft: rgba(177, 31, 75, 0.08);
+      --cp-accent-fg: #ffffff;
+      --cp-success: #16a34a;
+      --cp-danger: #dc2626;
+      --cp-warning: #f59e0b;
+      --cp-link: #0078d4;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+      --cp-overlay: rgba(255, 255, 255, 0.8);
+      --cp-panel: rgba(255, 255, 255, 0.86);
+      --cp-panel-strong: rgba(255, 255, 255, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.55);
+      --cp-highlight: rgba(177, 31, 75, 0.12);
+    }
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --cp-bg: #3d3b3a;
+      --cp-bg-elevated: #343231;
+      --cp-surface: #292929;
+      --cp-surface-soft: #2e2e2e;
+      --cp-border: #474747;
+      --cp-border-strong: #5f5f5f;
+      --cp-text: #dedede;
+      --cp-text-muted: #919191;
+      --cp-text-soft: #b0b0b0;
+      --cp-accent: #fd8ea1;
+      --cp-accent-hover: #fb7b91;
+      --cp-accent-soft: rgba(253, 142, 161, 0.14);
+      --cp-accent-fg: #1a1a1a;
+      --cp-success: #4ade80;
+      --cp-danger: #f87171;
+      --cp-warning: #fbbf24;
+      --cp-link: #4da6ff;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+      --cp-overlay: rgba(41, 41, 41, 0.88);
+      --cp-panel: rgba(41, 41, 41, 0.72);
+      --cp-panel-strong: rgba(41, 41, 41, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.04);
+      --cp-highlight: rgba(253, 142, 161, 0.12);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;padding:32px 20px;background:var(--cp-bg);color:var(--cp-text);font-family:"Segoe UI",Aptos,Calibri,-apple-system,BlinkMacSystemFont,sans-serif}
+    main{max-width:1080px;margin:auto}
+    header,.card,.notice{padding:24px;border:1px solid var(--cp-border);border-radius:16px;background:var(--cp-surface)}
+    h1{font-size:32px;margin:8px 0 16px}
+    .eyebrow{font-size:13px;letter-spacing:.08em;color:var(--cp-accent);font-weight:700}
+    p,li{line-height:1.7}
+    .notice{border-left:4px solid var(--cp-warning);margin:20px 0;background:var(--cp-bg-elevated)}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .label{font-size:13px;color:var(--cp-text-muted)}
+    .value{font-size:24px;font-weight:700;margin:12px 0;overflow-wrap:anywhere}
+    .details{margin-top:20px}
+    code{font-family:Consolas,"Courier New",Courier,monospace}
+    a{color:var(--cp-link)}
+    @media(max-width:700px){.grid{grid-template-columns:1fr}h1{font-size:25px}}
+  </style>
+</head>
+<body><main>
+  <header><div class="eyebrow">PUBLIC / REDACTED EXAMPLE</div><h1>实际私网协议证据的公开示例</h1>
+    <p>用于说明如何解释诊断结果。账户、租户、订阅、服务域名和请求标识均未公开。</p>
+  </header>
+  <div class="notice"><strong>这不是你当前环境的现场实测报告。</strong>下面保留历史演示的通用网段与证据结构，不请求任何服务、不重放实时结果。正式验收应在自己的环境运行测试脚本，检查新时间戳和原始 JSON。</div>
+  <section class="grid">
+    <div class="card"><div class="label">示例：委派子网来源</div><div class="value">172.20.0.4 / .5</div><p>来源必须实际落在该环境的委派子网内。</p></div>
+    <div class="card"><div class="label">示例：私有端点目标</div><div class="value">172.20.1.4:443</div><p>私有 DNS 和直接 TCP 目标应匹配端点 NIC 的真实 IP。</p></div>
+    <div class="card"><div class="label">示例：公网上的反向对照</div><div class="value">403</div><p>还必须检查后端公网关闭、有效身份和数据角色；不能只凭任意 403 下结论。</p></div>
+  </section>
+  <section class="card details"><h2>验收链条</h2><ol>
+    <li>在 Power Platform 环境内解析正常服务 FQDN，结果为私有端点 IP。</li>
+    <li>由委派子网内的诊断容器直接连接该私有 IP 的 TCP 443。</li>
+    <li>通过正常域名完成 TLS 握手，检查证书、协议、错误和 CRL 状态。</li>
+    <li>确认目标 Public Network Access 为 Disabled，带授权身份的公网请求被拒绝。</li>
+  </ol><p><strong>范围：</strong>协议数据包往返，不等同于连接器 / 插件业务对象读写、区域灾备或产品许可验收。</p>
+  <p><a href="./customer-demo-slides.html">返回五页幻灯片</a> · <a href="../README.md">查看配置和复跑说明</a></p></section>
+</main></body></html>

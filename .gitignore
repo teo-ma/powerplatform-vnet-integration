@@ -1,0 +1,23 @@
+# Private local deployment inputs and runtime inventory/evidence.
+/demo.config.json
+/.azure/
+/reports/private-network-proof.html
+/reports/private-path-capability.html
+
+# Authentication material must remain outside the repository.
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+*.p12
+msal_token_cache*
+msal_http_cache*
+azureProfile.json
+accessTokens.json
+
+# Local editor and operating-system files.
+.DS_Store
+Thumbs.db
+/.vscode/
+node_modules/

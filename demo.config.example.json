@@ -1,0 +1,38 @@
+{
+  "deploymentId": "pp-vnet-demo-local",
+  "subscriptionId": "00000000-0000-0000-0000-000000000000",
+  "tenantId": "00000000-0000-0000-0000-000000000000",
+  "account": "demo.user@contoso.onmicrosoft.com",
+  "principalId": "00000000-0000-0000-0000-000000000000",
+  "resourceGroupName": "rg-pp-vnet-demo-local",
+  "resourceGroupLocation": "westus",
+  "policyName": "ep-pp-vnet-demo",
+  "policyLocation": "unitedstates",
+  "defaultEnvironmentId": "Default-00000000-0000-0000-0000-000000000000",
+  "environmentName": "PP VNet Demo",
+  "environmentType": "Developer",
+  "environmentLocation": "unitedstates",
+  "environmentMacroRegion": "north-america",
+  "preferredAzureRegion": "westus",
+  "baseLanguage": 1033,
+  "currency": "USD",
+  "privatePathStorageName": "stpppathreplacewithunique",
+  "subnetName": "snet-powerplatform",
+  "networks": [
+    {
+      "name": "vnet-pp-demo-westus",
+      "nsgName": "nsg-pp-demo-westus",
+      "location": "westus",
+      "addressPrefix": "172.20.0.0/16",
+      "subnetPrefix": "172.20.0.0/24"
+    },
+    {
+      "name": "vnet-pp-demo-eastus",
+      "nsgName": "nsg-pp-demo-eastus",
+      "location": "eastus",
+      "addressPrefix": "172.21.0.0/16",
+      "subnetPrefix": "172.21.0.0/24"
+    }
+  ],
+  "configurationOnly": true
+}

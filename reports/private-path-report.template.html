@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Power Platform private-path diagnostic evidence</title>
+  <style>
+    :root{font-family:system-ui,sans-serif;color:#18283c;background:#eef3f8}
+    *{box-sizing:border-box}body{margin:0;padding:36px 24px}
+    main{max-width:1100px;margin:auto}
+    header{padding:32px;border-radius:18px;background:#132d4b;color:#fff}
+    h1{margin:10px 0;font-size:32px;line-height:1.2}
+    .eyebrow{font-size:12px;letter-spacing:2px;color:#a8cbea}
+    .badge{display:inline-block;padding:8px 16px;border-radius:50px;background:#fce8e7;color:#9e2020;font-weight:700}
+    .badge.ready{background:#fff0c3;color:#705300}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:22px 0}
+    .card,.details,.notice{background:#fff;padding:22px;border-radius:14px;border:1px solid #dce5ef}
+    .label{font-size:12px;color:#567086;text-transform:uppercase;letter-spacing:1px}
+    .value{font-size:20px;font-weight:700;margin-top:12px;overflow-wrap:anywhere}
+    .notice{border-left:5px solid #c63838;line-height:1.7}
+    .notice strong{color:#a32626}
+    h2{font-size:18px}code,pre{font-family:ui-monospace,monospace}
+    pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f5f7fa;padding:16px;border-radius:8px}
+    dt{font-size:13px;color:#567086}dd{margin:4px 0 16px;overflow-wrap:anywhere}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+    footer{font-size:12px;color:#567086;margin-top:22px;line-height:1.7}
+    button{border:0;background:#235e9a;color:#fff;border-radius:8px;padding:10px 18px;cursor:pointer}
+    @media(max-width:800px){.grid,.two{grid-template-columns:1fr 1fr}}
+    @media(max-width:520px){.grid,.two{grid-template-columns:1fr}body{padding:16px}}
+    @media print{body{background:#fff;padding:0}button{display:none}header{color:#18283c;background:#edf3fa}}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">POWER PLATFORM / VNET INTEGRATION</div>
+    <h1>Private network path: diagnostic evidence</h1>
+    <span class="badge __STATUS_CLASS__">__STATUS__</span>
+    <p>Environment: __ENVIRONMENT__ &middot; Region: __REGION__</p>
+  </header>
+  <section class="grid" aria-label="Evidence summary">
+    <div class="card"><div class="label">Policy configuration</div><div class="value">__ASSOCIATION__</div></div>
+    <div class="card"><div class="label">Delegated source subnet</div><div class="value">__SUBNET__</div></div>
+    <div class="card"><div class="label">Observed container IP</div><div class="value">__SOURCE_IP__</div></div>
+    <div class="card"><div class="label">Private target proof</div><div class="value">Not yet verified</div></div>
+  </section>
+  <section class="notice">
+    <strong>This is not a successful private-network transfer demonstration.</strong><br>
+    A linked enterprise policy and a runtime subnet mapping do not prove that
+    packets reached a private target. No business data read/write, private-target
+    TCP connection, or private-target TLS handshake has passed in this report.
+    No chargeable test backend has been deployed.
+  </section>
+  <section class="two">
+    <div class="details">
+      <h2>Observed diagnostic outcome</h2>
+      <pre>__ERROR__</pre>
+    </div>
+    <div class="details">
+      <h2>Required acceptance evidence</h2>
+      <ol>
+        <li>Source IP inside the Power Platform delegated subnet.</li>
+        <li>Normal service FQDN resolves to the exact Private Endpoint IP.</li>
+        <li>TCP and TLS succeed over that private route.</li>
+        <li>The target has public network access disabled.</li>
+        <li>A public-client request is rejected by network policy.</li>
+      </ol>
+      <p>DNS/TCP/TLS prove protocol traffic, not an application payload read/write.</p>
+    </div>
+  </section>
+  <section class="details" style="margin-top:18px">
+    <h2>Re-run the actual capability test</h2>
+    <pre>pwsh -NoProfile -File scripts/Test-PrivatePathCapability.ps1 -AzureConfigDirectory &lt;your-private-cli-cache&gt; -OpenReport</pre>
+    <p>Use an active PIM administrator session. The test saves fresh raw JSON and
+      regenerates this report; it does not replay a success screenshot.</p>
+    <button type="button" onclick="print()">Print / save evidence</button>
+  </section>
+  <footer>
+    Environment ID: __ENVIRONMENT_ID__<br>
+    Evidence time (UTC): __TIME__<br>
+    Scope: read-only diagnostic capability. No paid license, VM, NAT gateway,
+    Private Endpoint, or test storage account was added.
+  </footer>
+</main>
+</body>
+</html>
