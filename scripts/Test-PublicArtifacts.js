@@ -44,26 +44,83 @@ for (const file of tracked) {
   }
 }
 
-const deckPath = path.join(root, "reports", "customer-demo-slides.html");
-const deck = fs.readFileSync(deckPath, "utf8");
-const slides = [...deck.matchAll(/<section class="slide" id="slide-(\d+)"/g)];
-if (slides.length !== 5 || slides.some((slide, index) => Number(slide[1]) !== index + 1)) {
-  throw new Error("The published deck must have exactly five ordered slides.");
+const overviewFile = "reports/customer-demo-slides.md";
+if (!tracked.includes(overviewFile)) throw new Error("The Markdown technical overview must be included in the publication set.");
+const overview = fs.readFileSync(path.join(root, overviewFile), "utf8");
+const sections = [...overview.matchAll(/^## ([1-5])\. /gm)];
+if (sections.length !== 5 || sections.some((section, index) => Number(section[1]) !== index + 1)) {
+  throw new Error("The technical overview must preserve five ordered content sections.");
 }
-if ([...deck.matchAll(/data-page="\d+"/g)].length !== 5) throw new Error("All five pages need navigation buttons.");
-for (const [index, script] of [...deck.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].entries()) {
-  new vm.Script(script[1], { filename: `customer-demo-slides.html:script-${index + 1}` });
+if (/<(?:script|style|svg)\b/i.test(overview)) throw new Error("The overview must use Markdown and Mermaid rather than HTML presentation code.");
+if (!/^```mermaid$/m.test(overview)) throw new Error("The converted architecture diagram must use Mermaid.");
+if (tracked.some((file) => file === overviewFile.replace(/\.md$/, ".html"))) {
+  throw new Error("The superseded HTML slide deck must not remain in the publication set.");
 }
-if (/<script[^>]+src=|<link[^>]+href=/i.test(deck)) throw new Error("The deck must remain self-contained.");
-for (const link of deck.matchAll(/href="(\.[^"#?]+)[^"]*"/g)) {
-  const file = path.resolve(path.dirname(deckPath), link[1]);
-  if (!fs.existsSync(file)) throw new Error(`Broken local deck link: ${link[1]}`);
-  const relative = path.relative(root, file).split(path.sep).join("/");
-  if (!tracked.includes(relative)) throw new Error(`Default public deck link points to an unpublished file: ${relative}`);
+
+function assertPublicLink(sourceFile, target) {
+  if (/^(?:https?:|mailto:|#)/i.test(target)) return;
+  const pathname = decodeURIComponent(target.split(/[?#]/)[0]);
+  const absolute = path.resolve(root, path.dirname(sourceFile), pathname);
+  const relative = path.relative(root, absolute).split(path.sep).join("/");
+  if (!fs.existsSync(absolute) || !tracked.includes(relative)) {
+    throw new Error(`Broken or unpublished local link in ${sourceFile}: ${target}`);
+  }
+}
+
+function assertMermaid(sourceFile, markdown) {
+  const ids = new Set();
+  const attestation = '<!-- mermaid-checked: no \\n, no em-dash/en-dash, no {} in labels, subgraphs are id["label"], arrows are -->|"label"|, all subgraphs closed by end, ids unique -->';
+  for (const block of markdown.matchAll(/^```mermaid\r?\n([\s\S]*?)^```/gm)) {
+    if (!markdown.slice(0, block.index).trimEnd().endsWith(attestation)) {
+      throw new Error(`Missing Mermaid safety attestation: ${sourceFile}`);
+    }
+    const lines = block[1].trim().split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    if (!/^flowchart (?:TD|LR)$/.test(lines.shift())) throw new Error(`Unsupported Mermaid chart: ${sourceFile}`);
+    const stack = [];
+    const edges = [];
+    let nodeCount = 0;
+    for (const line of lines) {
+      if (/\\n|[—–{}@#$%&“”‘’]/.test(line)) throw new Error(`Unsafe Mermaid characters in ${sourceFile}: ${line}`);
+      const subgraph = /^subgraph ([A-Za-z]\w*)\["[^"]*"\]$/.exec(line);
+      const node = /^([A-Za-z]\w*)(?:\["[^"]*"\]|\(\("[^"]*"\)\)|\[\("[^"]*"\)\])$/.exec(line);
+      if (subgraph || node) {
+        const id = (subgraph || node)[1];
+        if (ids.has(id)) throw new Error(`Repeated Mermaid declaration in ${sourceFile}: ${id}`);
+        ids.add(id);
+        if (subgraph) stack.push(id);
+        else nodeCount++;
+        continue;
+      }
+      if (line === "end") {
+        if (!stack.pop()) throw new Error(`Unmatched Mermaid end: ${sourceFile}`);
+        continue;
+      }
+      const edge = /^([A-Za-z]\w*)\s+(?:-->|-\.->)(?:\|"[^"]*"\|)?\s+([A-Za-z]\w*)$/.exec(line);
+      if (!edge) throw new Error(`Unsupported Mermaid statement in ${sourceFile}: ${line}`);
+      edges.push([edge[1], edge[2]]);
+    }
+    if (stack.length || nodeCount > 40) throw new Error(`Unclosed or oversized Mermaid diagram: ${sourceFile}`);
+    for (const edge of edges) {
+      if (edge.some((id) => !ids.has(id))) throw new Error(`Undefined Mermaid endpoint: ${sourceFile}`);
+    }
+  }
+}
+
+for (const file of tracked.filter((name) => /\.(?:md|html)$/i.test(name))) {
+  const body = fs.readFileSync(path.join(root, file), "utf8");
+  if (file.endsWith(".md")) {
+    for (const link of body.matchAll(/\[[^\]]+\]\(([^)\s]+)\)/g)) assertPublicLink(file, link[1]);
+    assertMermaid(file, body);
+  } else {
+    for (const link of body.matchAll(/href="([^"]+)"/g)) assertPublicLink(file, link[1]);
+    for (const [index, script] of [...body.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].entries()) {
+      new vm.Script(script[1], { filename: `${file}:script-${index + 1}` });
+    }
+  }
 }
 const example = JSON.parse(fs.readFileSync(path.join(root, "demo.config.example.json"), "utf8"));
 for (const field of ["subscriptionId", "tenantId", "principalId"]) {
   if (example[field] !== "00000000-0000-0000-0000-000000000000") throw new Error("Examples must not publish real identities.");
 }
-console.log(`PASS: ${tracked.length} staged public files; no private runtime artifacts, identity values, or detected secrets; five offline slides and all public links.`);
+console.log(`PASS: ${tracked.length} staged public files; no private runtime artifacts, identity values, or detected secrets; five-section Markdown overview, safe Mermaid diagrams, and all public links.`);
 console.log("PASS: public documentation and HTML use technical reference copy rather than presenter instructions.");

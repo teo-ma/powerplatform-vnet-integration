@@ -1,6 +1,6 @@
 # Architecture Diagram
 
-This reference implementation combines HTML/JavaScript technical material with
+This reference implementation combines Markdown/Mermaid documentation and HTML reports with
 PowerShell/Bicep orchestration. The diagrams separate
 configuration relationships from the actual West US private diagnostic path.
 
@@ -10,7 +10,7 @@ configuration relationships from the actual West US private diagnostic path.
 ```mermaid
 flowchart TD
     subgraph PresentationA1["Local Presentation"]
-        SlidesA1["Five-page HTML and JavaScript slides"]
+        SlidesA1["Markdown technical overview"]
         ReportA1["Timestamped HTML proof report"]
         OperatorA1["PowerShell 7 and Azure CLI operator"]
     end
@@ -49,7 +49,8 @@ flowchart TD
 
 | Layer | Technology | Version | Purpose |
 | --- | --- | --- | --- |
-| Presentation | Self-contained HTML, CSS, vanilla JavaScript | Browser standards | Offline five-slide deck and evidence display |
+| Documentation | Markdown and Mermaid | GitHub-compatible | Technical overview and architecture diagrams |
+| Reports | Self-contained HTML and CSS | Browser standards | Timestamped protocol evidence display |
 | Orchestration | PowerShell | 7 | Actual probes, strict assertions, JSON/HTML evidence |
 | Authentication | Azure CLI and Microsoft Entra OAuth | Installed CLI | Explicit tenant/account/subscription; no project credentials |
 | Infrastructure | Bicep | Validated with 0.48.1 | Incremental, approved Azure deployments |
@@ -78,7 +79,7 @@ stored locally as JSON; the HTML report exposes no access tokens.
 ```mermaid
 flowchart LR
     subgraph PresentationC2["Presentation"]
-        DeckC2["Technical slide deck"]
+        DeckC2["Markdown technical overview"]
         EvidencePageC2["Private network proof HTML"]
     end
     subgraph OrchestrationC2["PowerShell Orchestration"]
@@ -109,7 +110,7 @@ flowchart LR
 
 | Component | Layer | Type | Responsibility |
 | --- | --- | --- | --- |
-| `customer-demo-slides.html` | Presentation | HTML/JavaScript | Exactly five offline slides and navigation/printing |
+| `customer-demo-slides.md` | Documentation | Markdown/Mermaid | Architecture, configuration, IP planning, permissions and validation scope |
 | `private-network-proof.html` | Presentation | Generated HTML | Show actual protocol evidence and limits |
 | `Verify-Demo.ps1` | Orchestration | PowerShell script | Verify configuration, association and baseline preservation |
 | `Test-PrivatePathCapability.ps1` | Orchestration | PowerShell script | Warm diagnostic containers and verify actual source subnet |
