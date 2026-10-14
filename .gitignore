@@ -3,6 +3,8 @@
 /.azure/
 /reports/private-network-proof.html
 /reports/private-path-capability.html
+/reports/private-network-proof.md
+/reports/private-path-capability.md
 
 # Authentication material must remain outside the repository.
 .env

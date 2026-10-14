@@ -1,6 +1,6 @@
 # Architecture Diagram
 
-This reference implementation combines Markdown/Mermaid documentation and HTML reports with
+This reference implementation combines an HTML slide deck and Markdown reports with
 PowerShell/Bicep orchestration. The diagrams separate
 configuration relationships from the actual West US private diagnostic path.
 
@@ -10,8 +10,8 @@ configuration relationships from the actual West US private diagnostic path.
 ```mermaid
 flowchart TD
     subgraph PresentationA1["Local Presentation"]
-        SlidesA1["Markdown technical overview"]
-        ReportA1["Timestamped HTML proof report"]
+        SlidesA1["Five-page HTML technical slides"]
+        ReportA1["Timestamped Markdown proof report"]
         OperatorA1["PowerShell 7 and Azure CLI operator"]
     end
     subgraph PlatformA1["Microsoft Power Platform"]
@@ -49,9 +49,9 @@ flowchart TD
 
 | Layer | Technology | Version | Purpose |
 | --- | --- | --- | --- |
-| Documentation | Markdown and Mermaid | GitHub-compatible | Technical overview and architecture diagrams |
-| Reports | Self-contained HTML and CSS | Browser standards | Timestamped protocol evidence display |
-| Orchestration | PowerShell | 7 | Actual probes, strict assertions, JSON/HTML evidence |
+| Presentation | Self-contained HTML, CSS and JavaScript | Browser standards | Five-page technical slides with navigation and printing |
+| Documentation and reports | Markdown and Mermaid | GitHub-compatible | Timestamped protocol evidence and architecture diagrams |
+| Orchestration | PowerShell | 7 | Actual probes, strict assertions, JSON/Markdown evidence |
 | Authentication | Azure CLI and Microsoft Entra OAuth | Installed CLI | Explicit tenant/account/subscription; no project credentials |
 | Infrastructure | Bicep | Validated with 0.48.1 | Incremental, approved Azure deployments |
 | Runtime | Power Platform managed diagnostics | Managed service | Probes originate in delegated subnet |
@@ -62,7 +62,7 @@ flowchart TD
 The empty Standard_LRS Blob account is the protocol-test target, not a store
 of business payloads. Microsoft management APIs provide role/configuration
 checks and official Power Platform DNS/TCP/TLS diagnostics. Raw evidence is
-stored locally as JSON; the HTML report exposes no access tokens.
+stored locally as JSON; the generated Markdown report exposes no access tokens.
 
 ### Key Architectural Decisions
 
@@ -79,8 +79,8 @@ stored locally as JSON; the HTML report exposes no access tokens.
 ```mermaid
 flowchart LR
     subgraph PresentationC2["Presentation"]
-        DeckC2["Markdown technical overview"]
-        EvidencePageC2["Private network proof HTML"]
+        DeckC2["HTML technical slide deck"]
+        EvidencePageC2["Private network proof Markdown"]
     end
     subgraph OrchestrationC2["PowerShell Orchestration"]
         ConfigTestC2["Verify-Demo script"]
@@ -110,8 +110,9 @@ flowchart LR
 
 | Component | Layer | Type | Responsibility |
 | --- | --- | --- | --- |
-| `customer-demo-slides.md` | Documentation | Markdown/Mermaid | Architecture, configuration, IP planning, permissions and validation scope |
-| `private-network-proof.html` | Presentation | Generated HTML | Show actual protocol evidence and limits |
+| `customer-demo-slides.html` | Presentation | HTML/JavaScript | Five-page technical slides with navigation and printing |
+| `private-network-proof.md` | Reports | Generated Markdown | Actual protocol evidence and limits |
+| `Demo.Reports.ps1` | Infrastructure | Shared report renderer | Escaped Markdown templates with explicit status and missing-value errors |
 | `Verify-Demo.ps1` | Orchestration | PowerShell script | Verify configuration, association and baseline preservation |
 | `Test-PrivatePathCapability.ps1` | Orchestration | PowerShell script | Warm diagnostic containers and verify actual source subnet |
 | `Test-PrivateNetworkPath.ps1` | Orchestration | PowerShell script | Assert exact private target, source IPs, TLS and public rejection |

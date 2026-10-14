@@ -13,7 +13,7 @@ if (!tracked.length) throw new Error("Stage the public source files before valid
 const forbiddenPaths = [
   /^\.azure\//,
   /^demo\.config\.json$/,
-  /^reports\/(?:private-network-proof|private-path-capability)\.html$/,
+  /^reports\/(?:private-network-proof|private-path-capability)\.(?:html|md)$/,
   /(?:^|\/)(?:\.env(?:\..*)?|msal_.*|azureProfile\.json|accessTokens\.json)$/,
   /\.(?:pem|key|pfx|p12)$/i,
 ];
@@ -44,17 +44,22 @@ for (const file of tracked) {
   }
 }
 
-const overviewFile = "reports/customer-demo-slides.md";
-if (!tracked.includes(overviewFile)) throw new Error("The Markdown technical overview must be included in the publication set.");
-const overview = fs.readFileSync(path.join(root, overviewFile), "utf8");
-const sections = [...overview.matchAll(/^## ([1-5])\. /gm)];
-if (sections.length !== 5 || sections.some((section, index) => Number(section[1]) !== index + 1)) {
-  throw new Error("The technical overview must preserve five ordered content sections.");
+const deckFile = "reports/customer-demo-slides.html";
+if (!tracked.includes(deckFile)) throw new Error("The restored HTML technical slides must be published.");
+const deck = fs.readFileSync(path.join(root, deckFile), "utf8");
+const slides = [...deck.matchAll(/<section class="slide" id="slide-(\d+)"/g)];
+if (slides.length !== 5 || slides.some((slide, index) => Number(slide[1]) !== index + 1)) {
+  throw new Error("The HTML technical slides must preserve five ordered pages.");
 }
-if (/<(?:script|style|svg)\b/i.test(overview)) throw new Error("The overview must use Markdown and Mermaid rather than HTML presentation code.");
-if (!/^```mermaid$/m.test(overview)) throw new Error("The converted architecture diagram must use Mermaid.");
-if (tracked.some((file) => file === overviewFile.replace(/\.md$/, ".html"))) {
-  throw new Error("The superseded HTML slide deck must not remain in the publication set.");
+if ([...deck.matchAll(/data-page="\d+"/g)].length !== 5) throw new Error("All five slides need navigation buttons.");
+if (/<script[^>]+src=|<link[^>]+href=/i.test(deck)) throw new Error("The slide deck must remain self-contained.");
+if (tracked.includes(deckFile.replace(/\.html$/, ".md"))) throw new Error("The superseded Markdown slide document must not remain published.");
+for (const stem of ["private-network-proof.template", "private-path-report.template", "sample-private-network-proof"]) {
+  const file = `reports/${stem}.md`;
+  if (!tracked.includes(file)) throw new Error(`A converted Markdown report is missing: ${file}`);
+  if (tracked.includes(`reports/${stem}.html`)) throw new Error(`A superseded HTML report is still published: ${stem}`);
+  const body = fs.readFileSync(path.join(root, file), "utf8");
+  if (/<(?:html|script|style|svg)\b/i.test(body)) throw new Error(`A report must use Markdown rather than HTML presentation code: ${file}`);
 }
 
 function assertPublicLink(sourceFile, target) {
@@ -122,5 +127,5 @@ const example = JSON.parse(fs.readFileSync(path.join(root, "demo.config.example.
 for (const field of ["subscriptionId", "tenantId", "principalId"]) {
   if (example[field] !== "00000000-0000-0000-0000-000000000000") throw new Error("Examples must not publish real identities.");
 }
-console.log(`PASS: ${tracked.length} staged public files; no private runtime artifacts, identity values, or detected secrets; five-section Markdown overview, safe Mermaid diagrams, and all public links.`);
+console.log(`PASS: ${tracked.length} staged public files; no private runtime artifacts, identity values, or detected secrets; five-page HTML slides, Markdown reports, safe Mermaid diagrams, and all public links.`);
 console.log("PASS: public documentation and HTML use technical reference copy rather than presenter instructions.");

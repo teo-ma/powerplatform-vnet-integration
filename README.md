@@ -1,7 +1,7 @@
 # Power Platform VNet 集成与私网路径验证
 
 基于 Azure VNet、子网委派和 NetworkInjection 企业策略的参考实现，包含基础设施代码、
-PowerShell 部署与验证脚本、Markdown 技术概览和脱敏证据示例。
+PowerShell 部署与验证脚本、五页 HTML 技术幻灯片和 Markdown 报告。
 
 本项目验证的是 **Power Platform 到私有后端的出站协议路径**，不是 VNet Data Gateway，
 也不是通过入站 Private Endpoint 将整个 Power Platform 或 Dataverse 放入 VNet。
@@ -10,18 +10,22 @@ PowerShell 部署与验证脚本、Markdown 技术概览和脱敏证据示例。
 
 | 资料 | 内容 |
 | --- | --- |
-| [技术概览（Markdown）](reports/customer-demo-slides.md) | 概览、Mermaid 架构图与官方配置、IP 规划、权限分层、技术总结 |
-| [公开脱敏证据示例](reports/sample-private-network-proof.html) | 参考部署的源 IP、目标 IP、协议检查和公网反向对照结构 |
+| [五页技术幻灯片（HTML）](reports/customer-demo-slides.html) | 封面、架构与官方配置、IP 规划、权限分层、技术总结；离线导航与打印 |
+| [公开脱敏证据示例（Markdown）](reports/sample-private-network-proof.md) | 参考部署的源 IP、目标 IP、协议检查和公网反向对照结构 |
+| [私网协议报告模板](reports/private-network-proof.template.md) | 实际协议测试的 Markdown 输出结构 |
+| [诊断能力报告模板](reports/private-path-report.template.md) | 能力预检的 Markdown 输出结构，明确区别于私有目标验收 |
 | [架构与组件关系图](.github/modernize/assessment/engines/facts/architecture-diagram.md) | 数据路径、配置关系和脚本组件职责 |
 | [配置示例](demo.config.example.json) | 不含真实租户、订阅或账号的本地配置模板 |
 | [基础配置模板](infra/main.bicep) | 独立资源组、配对 VNet、专用委派子网、NSG 和企业策略 |
 | [私有验证目标模板](infra/private-path.bicep) | 公网关闭的 Storage、Private Endpoint、Private DNS 和独立端点子网 |
 
-技术概览可在 GitHub 中直接阅读，架构图使用 Mermaid；离线阅读可使用支持 Mermaid 的
-Markdown 预览器。报告示例和生成报告仍为自包含 HTML，可在浏览器打开。
+技术幻灯片恢复为自包含 HTML，支持方向键、Page Up / Page Down、空格和页码导航，
+`F` 全屏、`T` 明暗主题以及五页打印布局，无 CDN 或外部运行依赖。
+三个报告资料均为 Markdown，可在 GitHub 或 Markdown 预览器中阅读。
 
-公开文档链接指向脱敏示例。本机生成的 `reports/private-network-proof.html`
-不上传到仓库。示例页面和本地历史报告都不代表当前环境状态，
+幻灯片默认链接指向公开脱敏 Markdown 示例。
+[本地报告模式](reports/customer-demo-slides.html?localDemo=1) 指向本机生成的
+`reports/private-network-proof.md`，该文件不上传到仓库。示例和本地历史报告都不代表当前环境状态，
 实际验收以新测试的时间戳及原始证据为准。
 
 ## 架构与验证范围
@@ -150,7 +154,8 @@ Azure 管理角色也不等于通过 Entra ID 获得 Blob 数据面权限。
 
 - `demo.config.json`：真实账号、租户、订阅、主体和目标名称。
 - `.azure/`：批准计划、资源盘点、部署状态、请求与验收证据。
-- `reports/private-network-proof.html`、`reports/private-path-capability.html`：本地生成报告。
+- `reports/private-network-proof.md`、`reports/private-path-capability.md`：本地生成报告。
+- 旧版生成 HTML 仍被 Git 忽略，以免历史私有运行记录被意外发布。
 
 认证缓存必须位于项目之外。访问令牌、密码、私钥和连接密钥不属于项目配置或证据。
 公开示例不请求服务，不重放运行结果，也不替代部署环境内的新测试。
@@ -281,8 +286,9 @@ pwsh -NoProfile -File scripts/Test-PrivateNetworkPath.ps1 \
 5. 直接私有 IP 的 TCP 443 成功，正常域名的 TLS 握手和证书检查通过。
 6. 带有效身份和账户范围数据角色的公网请求被拒绝；认证失败不被当作网络路径证明。
 
-结果写入 `.azure/private-path-verification.json` 和本地 HTML。
+结果写入 `.azure/private-path-verification.json` 和本地 Markdown。
 每次运行都会发起新请求并记录时间戳；失败会返回非零退出码，不沿用旧成功结果。
+`-OpenReport` 使用系统默认的 Markdown 文件应用；格式化预览由 Markdown 阅读器提供。
 CRL 状态单独记录，失败时明确显示限制。参考部署曾通过 CRL 检查，
 一次热启动复测为 26.4 秒；这不是延迟保证或性能 SLA。
 
@@ -349,6 +355,15 @@ pwsh -NoProfile -File scripts/Remove-PrivatePathTarget.ps1
 
 诊断容器传播窗口可通过能力预检的 `-WaitForPropagationMinutes` 参数显式限定，
 不是无限重试。运行失败时保留原始错误；配置成功不会被用作协议测试的成功替代。
+
+报告格式的离线回归检查：
+
+```sh
+pwsh -NoProfile -File scripts/Test-MarkdownReports.ps1
+```
+
+该检查使用独立临时夹具，覆盖成功、失败、未完成、CRL 状态和 Markdown 特殊字符，
+不会调用 Azure 或覆盖本地真实验收证据。
 
 ## 官方文档
 

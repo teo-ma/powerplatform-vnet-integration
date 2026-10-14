@@ -9,6 +9,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 if ($AzureConfigDirectory) { $env:AZURE_CONFIG_DIR = $AzureConfigDirectory }
 . "$PSScriptRoot/Demo.Common.ps1"
+. "$PSScriptRoot/Demo.Reports.ps1"
 $config = Get-Content -LiteralPath "$root/demo.config.json" -Raw | ConvertFrom-Json
 $plan = Get-Content -LiteralPath "$root/.azure/private-path-plan.json" -Raw | ConvertFrom-Json
 if (-not $plan.meta.diagnosticOnlyScopeApproved -or $plan.inputs.subscriptionId -ne $config.subscriptionId) {
@@ -99,27 +100,7 @@ try {
 } finally {
     $report.completedAt = [DateTime]::UtcNow.ToString('o')
     Write-DemoJson "$root/.azure/private-path-capability.json" $report
-    $template = Get-Content -LiteralPath "$root/reports/private-path-report.template.html" -Raw
-    $message = if ($report.failure) { $report.failure.message } else {
-        'The diagnostic source is in the delegated subnet. A private target must still be deployed and tested; this report does not prove private-target traffic.'
-    }
-    $values = @{
-        STATUS = $report.status
-        STATUS_CLASS = if ($report.status -eq 'Blocked') { 'blocked' } else { 'ready' }
-        ENVIRONMENT = $report.environmentName
-        ENVIRONMENT_ID = $report.environmentId
-        REGION = $report.region
-        SUBNET = $report.expectedSourceSubnet
-        SOURCE_IP = if ($report.sourceContainerIp) { $report.sourceContainerIp } else { 'Not returned' }
-        TIME = $report.completedAt
-        ASSOCIATION = if ($report.configurationAssociationLinked) { 'Linked' } else { 'Not verified' }
-        ERROR = $message
-    }
-    foreach ($key in $values.Keys) {
-        $template = $template.Replace(('__' + $key + '__'), [Net.WebUtility]::HtmlEncode([string]$values[$key]))
-    }
-    $reportPath = "$root/reports/private-path-capability.html"
-    $template | Set-Content -LiteralPath $reportPath -Encoding utf8
+    $reportPath = Write-DemoCapabilityReport -Report $report -ProjectRoot $root
     Write-Output "Evidence: $root/.azure/private-path-capability.json"
     Write-Output "Report: $reportPath"
     if ($OpenReport) {

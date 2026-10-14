@@ -5,6 +5,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 if ($AzureConfigDirectory) { $env:AZURE_CONFIG_DIR = $AzureConfigDirectory }
 . "$PSScriptRoot/Demo.Common.ps1"
+. "$PSScriptRoot/Demo.Reports.ps1"
 $config = Get-Content -LiteralPath "$root/demo.config.json" -Raw | ConvertFrom-Json
 $target = Get-Content -LiteralPath "$root/.azure/private-path-target.json" -Raw | ConvertFrom-Json
 $plan = Get-Content -LiteralPath "$root/.azure/private-path-plan.json" -Raw | ConvertFrom-Json
@@ -151,25 +152,7 @@ try {
     $result.verifiedAt = [DateTime]::UtcNow.ToString('o')
     $result.durationSeconds = [Math]::Round(([DateTime]$result.verifiedAt - [DateTime]$result.startedAt).TotalSeconds, 1)
     Write-DemoJson "$root/.azure/private-path-verification.json" $result
-    $template = Get-Content -LiteralPath "$root/reports/private-network-proof.template.html" -Raw
-    $values = @{
-        STATUS = $result.status
-        CLASS = if ($result.privateNetworkPathProven) { 'passed' } else { 'failed' }
-        ENVIRONMENT = $config.environmentName
-        REGION = $target.region
-        HOSTNAME = $target.hostname
-        TARGET_IP = $target.privateEndpointIp
-        SOURCE_IPS = ($result.sourceIps.Values | Select-Object -Unique) -join ', '
-        TIME = $result.verifiedAt
-        DETAILS = if ($result.error) { $result.error } else {
-            'Actual private DNS, direct private-IP TCP, and TLS probes passed. Public access is disabled and the authenticated public-client request was denied. Business data read/write was not tested.'
-        }
-        CRL = if ((Get-DemoField $result 'certificateRevocationCheckSucceeded') -eq $true) { 'Passed' } else { 'Not verified / failed; see raw evidence' }
-        PUBLIC = if ($result.publicControl) { "$($result.publicControl.httpStatus) $($result.publicControl.errorCode)" } else { 'Not tested' }
-    }
-    foreach ($key in $values.Keys) { $template = $template.Replace(('__' + $key + '__'), [Net.WebUtility]::HtmlEncode([string]$values[$key])) }
-    $path = "$root/reports/private-network-proof.html"
-    $template | Set-Content -LiteralPath $path -Encoding utf8
+    $path = Write-DemoPrivatePathReport -Result $result -EnvironmentName $config.environmentName -ProjectRoot $root
     if ($OpenReport) { if ($IsMacOS) { & /usr/bin/open $path } else { Start-Process $path } }
 }
 if ($failure) { throw $failure }
