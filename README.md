@@ -58,6 +58,84 @@ Power Platform 的委派子网中，而非本地工作站。Private Endpoint 与
 `westus/eastus` 和上述 CIDR，不是面向任意 geography 的自动拓扑生成器。
 其他区域应重新核对官方支持表、实际环境区域、地址规划和相关验证逻辑。
 
+## Power Platform 与 Azure VNet 的地址模型
+
+Power Platform VNet 集成同时涉及平台 geography、Azure region、资源 ID、
+VNet CIDR、运行时源 IP、Private Endpoint 目标 IP 和 DNS 名称。它们处于不同层次，
+不能相互替代。
+
+| 地址或标识 | 参考值 | 谁使用 / 代表什么 | 稳定性与注意事项 |
+| --- | --- | --- | --- |
+| Power Platform geography | `unitedstates` | 企业策略的 `location` 和环境的数据驻留地理范围 | 不是 Azure region、IP 地址或路由目标 |
+| 环境实际 Azure region | `westus` | Power Platform 当前承载该环境运行时的 Azure region；由 `Get-EnvironmentRegion` 或诊断 API 获取 | 可能随平台故障转移而改变，不能只读取一次后永久假设 |
+| Enterprise Policy ARM ID | `/subscriptions/.../enterprisePolicies/...` | Azure 控制面的资源标识，用于关联环境与 VNet 配置 | 不是数据面网络地址；数据包不会“发往 ARM ID” |
+| West US VNet 地址池 | `172.20.0.0/16` | 划分委派、Private Endpoint 及未来子网的逻辑地址池 | 规划值，不表示已经创建或运行同等数量的实例 |
+| West US 委派子网 | `172.20.0.0/24` | Power Platform 在 West US 注入运行容器时，为容器 NIC 分配源 IP | 专用于 `Microsoft.PowerPlatform/enterprisePolicies`；每个 Azure 子网保留 5 个地址 |
+| East US VNet / 委派子网 | `172.21.0.0/16` / `172.21.0.0/24` | 当平台在 East US 承载或故障转移环境时，提供对应区域的运行容器源地址 | 必须与 West US 子网具有相同可用 IP 数；本参考未验证 East US 后端访问 |
+| 实际容器源 IP | `172.20.0.4`、`172.20.0.5` | 参考实测中执行 DNS、TCP 和 TLS 探针的 Power Platform 容器 NIC 地址 | 由平台动态分配，不应加入固定 allowlist 或绑定到某个用户、流程、插件或请求 |
+| Private Endpoint 子网 | `172.20.1.0/27` | 承载测试后端的 PE NIC；与 Power Platform 委派子网隔离 | 非委派子网；容量按 Private Endpoint 实际 IP 配置数量单独计算 |
+| Private Endpoint 目标 IP | `172.20.1.4` | VNet 内访问 Blob 服务时的目标私网地址 | 属于 PE NIC，不是 Storage 服务本体，也不是 Power Platform 容器地址 |
+| 正常服务 FQDN | `<storage>.blob.core.windows.net` | 应用和诊断测试使用的服务名称 | 在关联 VNet 内通过 Private DNS 解析为 PE 私网 IP；不要把应用改为连接 `privatelink` 子域名 |
+| Private DNS zone | `privatelink.blob.core.windows.net` | 保存并向关联 VNet 提供 Blob Private Endpoint 的私有 DNS 记录 | DNS 控制关系，不是目标地址；需链接每个需要解析该记录的 VNet |
+| Azure 平台 DNS 虚拟 IP | `168.63.129.16` | 参考运行时使用量信息中观察到的 Azure 提供 DNS 地址 | Azure 平台虚拟 IP，不属于上述客户 VNet CIDR，也不应当作业务后端地址 |
+| 公网解析地址 | 参考测试中观察到 `20.60.80.196` | VNet 外工作站解析同一 Blob FQDN 时得到的公网服务地址，用于公网拒绝对照 | Azure 服务公网地址可能变化，不应固定依赖；单独出现公网 IP 或 HTTP 403 不能证明私网路径 |
+
+### 实际数据路径
+
+当环境当前运行在 West US 时，参考路径为：
+
+```text
+Power Platform 环境
+  → West US 委派子网中的动态容器源 IP（172.20.0.4 / .5）
+  → 正常 Blob FQDN 通过 Private DNS 解析
+  → Private Endpoint NIC（172.20.1.4:443）
+  → Azure Private Link
+  → Storage Blob 服务
+```
+
+企业策略只保存 VNet 资源 ID 和子网名称，告诉 Power Platform 在哪个区域和子网注入运行容器。
+真正的数据面通信发生在容器源 IP 与解析后的目标私网 IP 之间。
+
+### 为什么需要两个 Azure region
+
+Power Platform **geography** 可以覆盖两个 Azure region。环境属于某个 Power Platform
+geography，但运行时可能位于其中任一 Azure region，并且平台可在区域事件中自动故障转移。
+因此，对具有两个受支持 Azure region 的 geography，企业策略必须同时提供：
+
+- 环境当前所在 region 的 VNet 和委派子网；
+- 同一 geography 内配对 region 的另一套 VNet 和同容量委派子网。
+
+以本参考的 United States / `westus` 环境为例，官方映射要求 `westus` 与 `eastus`：
+
+```text
+正常状态：环境运行在 West US → 使用 172.20.0.0/24
+区域切换：环境运行在 East US → 使用 172.21.0.0/24
+```
+
+如果只配置 West US，当环境被调度到或故障转移到 East US 时，平台没有可用的 East US
+委派子网来注入运行容器，私网连接无法保持。这也是双区域要求同样适用于开发、沙箱等
+非生产环境的原因：它是平台区域承载模型的要求，而不是仅针对生产 SLA 的建议。
+
+双区域 VNet 只解决 **Power Platform 在两个区域都有运行时网络入口**，不自动解决以下问题：
+
+- 私有后端是否在两个区域都可达；
+- Private DNS 是否同时链接到两个区域的 VNet；
+- 单区域 Private Endpoint 是否能被另一 VNet 通过 peering、Hub/Spoke 或其他受控路径访问；
+- 后端数据复制、区域故障转移和业务恢复目标。
+
+本参考只在 West US 部署并验证了一个 Blob Private Endpoint，因此可以证明当前
+West US 私网协议路径，**不能据此声称 East US 后端路径或双区域业务灾备已经通过**。
+生产设计通常需要在两个区域部署对应私有后端/Private Endpoint，或者通过经过验证的
+VNet peering、Hub/Spoke 与 DNS 设计，使两个委派 VNet 都能访问目标资源，并分别执行验收。
+
+官方依据：
+
+- [Power Platform geography 与 Azure region 映射](https://learn.microsoft.com/en-us/power-platform/admin/vnet-support-overview#supported-regions)
+- [为什么需要双区域 VNet 以及故障转移说明](https://learn.microsoft.com/en-us/power-platform/admin/vnet-support-overview#does-vnet-support-for-power-platform-failover)
+- [跨区域资源连接与 VNet peering](https://learn.microsoft.com/en-us/power-platform/admin/vnet-support-overview#how-can-a-power-platform-environment-in-one-region-connect-to-resources-hosted-in-another-region)
+- [官方 VNet 配置流程](https://learn.microsoft.com/en-us/power-platform/admin/vnet-support-setup-configure?pivots=powershell)
+- [Azure Storage Private Endpoint DNS 行为](https://learn.microsoft.com/en-us/azure/storage/common/storage-private-endpoints#dns-changes-for-private-endpoints)
+
 ### 已完成的参考验收
 
 | 验收层次 | 参考部署结果 | 结论边界 |
