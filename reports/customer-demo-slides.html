@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Power Platform 私网集成｜客户演示 · 5 页</title>
+  <title>Power Platform 私网集成｜架构与验证 · 5 页</title>
   <script>
     (() => {
       const param = new URLSearchParams(window.location.search).get("scoutTheme");
@@ -122,6 +122,7 @@
     th,td{padding:8px 12px;border-bottom:1px solid var(--cp-border);vertical-align:top;line-height:1.4;overflow-wrap:anywhere}
     tr:last-child td{border-bottom:0}
     .table-wrap{flex-shrink:0;min-width:0;width:100%;border:1px solid var(--cp-border);border-radius:16px;overflow:hidden;background:var(--cp-bg-elevated)}
+    .planning-table{table-layout:fixed}
     .two-columns{display:grid;grid-template-columns:1fr 1fr;gap:20px}
     .two-columns .panel{padding:16px}
     .rules{margin:0;padding-left:20px;font-size:15px;line-height:1.45}
@@ -203,7 +204,7 @@
 </head>
 <body>
   <header class="toolbar">
-    <div class="brand">POWER PLATFORM <span>PRIVATE NETWORK</span> · 客户演示</div>
+    <div class="brand">POWER PLATFORM <span>PRIVATE NETWORK</span> · 架构与验证</div>
     <div class="tools">
       <a href="./sample-private-network-proof.html" data-proof-link target="_blank" rel="noopener">查看脱敏证据示例</a>
       <button type="button" id="theme-button" title="T 切换明暗主题">切换主题</button>
@@ -212,7 +213,7 @@
     </div>
   </header>
   <p class="notification" id="notification" role="status" hidden></p>
-  <main class="viewport" id="viewport" aria-label="五页客户演示幻灯片">
+  <main class="viewport" id="viewport" aria-label="五页私网集成技术幻灯片">
     <div class="stage" id="stage">
       <section class="slide" id="slide-1" data-slide="1" aria-labelledby="title-1">
         <header class="heading">
@@ -221,24 +222,24 @@
         </header>
         <div class="content bookend-content">
           <h1 class="cover-title" id="title-1">Power Platform<br>VNet 私网集成</h1>
-          <p class="cover-lead">从官方配置到实际网络路径验证：用最小成本，把架构、网段、权限和证据讲清楚。</p>
-          <div class="cover-path" aria-label="演示的私网链路">
+          <p class="cover-lead">基于官方配置流程的低成本参考实现，涵盖网络架构、IP 容量、权限分层与实际私网协议验证。</p>
+          <div class="cover-path" aria-label="参考实现的私网链路">
             <span>Power Platform 委派子网</span><b>→</b><span>Private Endpoint</span><b>→</b><span>公网关闭的 Blob</span>
           </div>
           <div class="bookend-grid">
             <div class="panel"><div class="bookend-number">01 / ARCHITECTURE</div><h2>架构与官方流程</h2><p>区域配对、专用子网、企业策略、环境关联与官方文档。</p></div>
             <div class="panel"><div class="bookend-number">02 / DESIGN</div><h2>规划与最小权限</h2><p>IP 容量、隔离、DNS，以及配置身份和运行身份的授权边界。</p></div>
-            <div class="panel"><div class="bookend-number">03 / EVIDENCE</div><h2>可复跑的现场证据</h2><p>私网 DNS、TCP、TLS 1.3 与带身份的公网拒绝对照。</p></div>
+            <div class="panel"><div class="bookend-number">03 / EVIDENCE</div><h2>可重复的协议验证</h2><p>私网 DNS、TCP、TLS 1.3 与带身份的公网拒绝对照。</p></div>
           </div>
         </div>
-        <footer class="footer"><span>客户会议演示 · 自包含离线幻灯片 · 封面 + 3 页内容 + 封底</span><span>范围：协议路径；非业务对象读写或灾备验收</span></footer>
+        <footer class="footer"><span>技术参考 · 自包含离线资料 · 架构 / 规划 / 权限 / 验证</span><span>范围：协议路径；非业务对象读写或灾备验收</span></footer>
       </section>
 
       <section class="slide" id="slide-2" data-slide="2" aria-labelledby="title-2" hidden>
         <header class="heading">
           <div>
             <p class="eyebrow">01 / ARCHITECTURE &amp; OFFICIAL SETUP</p>
-            <h1 id="title-2">架构：把出站请求接入客户私网</h1>
+            <h1 id="title-2">架构：Power Platform 出站私网连接</h1>
             <p class="subtitle">已实测 West US 的私网 DNS / TCP / TLS；不是业务读写，也不是把整个 Power Platform 搬入 VNet。</p>
           </div>
           <div class="page-label">2 / 5</div>
@@ -246,10 +247,10 @@
         <div class="content">
           <div class="architecture-layout">
             <div class="panel diagram-panel">
-              <h2>当前 demo 的实际拓扑</h2>
+              <h2>参考部署拓扑与实际协议路径</h2>
               <svg class="diagram" viewBox="0 0 780 480" role="img" aria-labelledby="diagram-title diagram-description">
                 <title id="diagram-title">Power Platform 委派子网经私有端点连接公网关闭的 Blob 服务</title>
-                <desc id="diagram-description">West US 源 172.20.0.4 或 172.20.0.5 经私有端点 172.20.1.4 访问 Azure Storage。East US 委派子网参与企业策略配对，但本次没有故障切换实测。</desc>
+                <desc id="diagram-description">参考部署中，West US 源 172.20.0.4 或 172.20.0.5 经私有端点 172.20.1.4 访问 Azure Storage。East US 委派子网参与企业策略配对，未执行故障切换验收。</desc>
                 <defs>
                   <marker id="private-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="var(--cp-success)"/></marker>
                   <marker id="control-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="var(--cp-accent)"/></marker>
@@ -316,7 +317,7 @@
               </div>
             </div>
           </div>
-          <div class="notice">Private Endpoint / Private DNS 是本 demo 追加的私有验收目标，不是所有 VNet 场景的固定必选资源。这里只证明 West US 的实际协议路径，不声明业务对象读写或 East US 故障切换通过。</div>
+          <div class="notice">Private Endpoint / Private DNS 用于参考实现的私有目标验收，并非所有 VNet 场景的固定必选资源。验证范围仅为 West US 实际协议路径，不涵盖业务对象读写或 East US 故障切换。</div>
         </div>
         <footer class="footer"><span>已验证：私网 DNS、TCP 443、TLS 1.3、微软证书与 CRL；公网身份请求 403。</span><a href="./sample-private-network-proof.html" data-proof-link target="_blank" rel="noopener">查看脱敏证据示例 →</a></footer>
       </section>
@@ -325,52 +326,50 @@
         <header class="heading">
           <div>
             <p class="eyebrow">02 / ADDRESS PLANNING &amp; BEST PRACTICES</p>
-            <h1 id="title-3">网段规划：专用、对称、不重叠、留余量</h1>
-            <p class="subtitle">示例地址是本 demo 的已部署配置；生产应服从企业 IPAM，而不是直接照抄示例 CIDR。</p>
+            <h1 id="title-3">网段规划：IP 用途与容量计算依据</h1>
+            <p class="subtitle">委派 IP 分配给运行容器，而非每个用户、流程或请求；VNet 地址池、委派子网与端点子网分别估算。</p>
           </div>
           <div class="page-label">3 / 5</div>
         </header>
         <div class="content">
           <div class="table-wrap">
-            <table aria-label="本 demo 网段与子网容量">
-              <thead><tr><th>区域 / VNet 地址空间</th><th>子网规划</th><th>可用 IPv4</th><th>用途与约束</th></tr></thead>
+            <table class="planning-table" aria-label="IP 的实际用途与各类网段的规划依据">
+              <colgroup><col style="width:28%"><col style="width:36%"><col style="width:36%"></colgroup>
+              <thead><tr><th>参考部署地址范围</th><th>IP 分配对象与用途</th><th>容量规划依据</th></tr></thead>
               <tbody>
-                <tr><td>West US<br><code>172.20.0.0/16</code></td><td><code>172.20.0.0/24</code></td><td><strong>251</strong>（256 − 5）</td><td>Power Platform 专用委派子网；不放 PE、VM 或其他独占委派服务。</td></tr>
-                <tr><td>East US<br><code>172.21.0.0/16</code></td><td><code>172.21.0.0/24</code></td><td><strong>251</strong>（256 − 5）</td><td>美国区域配对；与 West US 委派子网可用 IP 数相同。</td></tr>
-                <tr><td>West US · 独立目标子网</td><td><code>172.20.1.0/27</code></td><td><strong>27</strong>（32 − 5）</td><td>非委派；Blob PE <code>172.20.1.4</code>；端点 NSG 允许源 <code>/24</code> 的 TCP 443。</td></tr>
+                <tr><td><strong>VNet 地址池</strong><br><code>172.20.0.0/16</code> / <code>172.21.0.0/16</code></td><td>容纳各类子网和未来扩展；划出地址池不等于启动同等数量的实例。</td><td>子网总需求 + 未来扩展；遵循 IPAM，不与本地、VPN、未来对等网络重叠。<code>/16</code> 不是固定要求。</td></tr>
+                <tr><td><strong>两区专用委派子网</strong><br><code>172.20.0.0/24</code> / <code>172.21.0.0/24</code></td><td>执行插件 / 受支持连接器请求的<strong>运行容器 NIC</strong>。每容器 1 IP，同一容器可处理多个并发请求。</td><td>同一策略下各环境峰值需求之和 + 余量；两区均为 <strong>251 个可用 IP</strong>，不是合计后对半分。</td></tr>
+                <tr><td><strong>独立非委派端点子网</strong><br><code>172.20.1.0/27</code> · 27 个可用 IP</td><td>Private Endpoint NIC 的<strong>目标私网 IP</strong>；Blob PE 用 <code>172.20.1.4</code>，不是把整个 Storage 服务放进子网。</td><td>各 PE 实际所需 IP 数 + 5 个保留地址 + 扩展余量；不占用 Power Platform 专用委派子网。</td></tr>
               </tbody>
             </table>
           </div>
           <div class="two-columns">
             <div class="panel">
-              <h2>容量：按环境和峰值算，不按用户人数猜</h2>
+              <h2>① 先估算每个环境的峰值容器需求</h2>
               <ul class="rules">
-                <li>官方经验估算：生产 <strong>25–30 IP / 环境</strong>，非生产 <strong>6–10 IP / 环境</strong>；以实际负载和伸缩验证。</li>
-                <li>Azure 每个子网保留 <strong>5 个地址</strong>。配对委派子网应有相同可用地址数，并预留未来环境及峰值余量。</li>
-                <li><code>/24</code> 是 demo 的宽裕容量选择，<strong>不是官方对所有客户的最小要求</strong>；端点子网大小也按端点数规划。</li>
+                <li><strong>按环境数汇总：</strong>同一策略 / 子网承载的全部环境纳入预算；用户数、流程数或业务数据量不能直接换算为 IP 数。</li>
+                <li><strong>官方经验起算：</strong>生产 <strong>25–30 IP / 环境</strong>，非生产 <strong>6–10 IP / 环境</strong>；是参考范围，不是硬上限或容量保证。</li>
+                <li><strong>根据峰值修正：</strong>调用并发和持续时间影响容器伸缩；结合高峰 / 压测及 <code>Get-EnvironmentUsage</code> 的实际占用，计入伸缩和增长空间。</li>
               </ul>
-              <div class="formula"><strong>规划公式：</strong>每环境 IP 预算 × 环境数 + 5 个保留地址 + 伸缩余量。<br>示例：4 × 30 + 5 = 125，至少 <code>/25</code>；20 × 10 + 5 = 205，至少 <code>/24</code>（以上尚未额外留余量）。</div>
             </div>
             <div class="panel">
-              <h2>隔离、解析与运维边界</h2>
-              <ul class="rules">
-                <li>遵循企业 IPAM，避开本地、VPN、Hub/Spoke、容器地址；未来需要 peering 的 VNet 网段不得重叠。</li>
-                <li>委派子网专用；同一子网不用于多个 Enterprise Policy。同一策略可关联多个环境，但必须合并容量预算。</li>
-                <li>使用正常服务 FQDN，Private DNS 链接到需要解析的 VNet；NSG / 路由放行必要流量，生产公网依赖需受控出站设计。</li>
-                <li>启用后不要直接改 CIDR 或 VNet DNS 地址；按官方停用 / 支持 / 重新启用流程评估变更与约 30 分钟影响窗口。</li>
-              </ul>
+              <h2>② 加余量和保留地址，再选 CIDR</h2>
+              <div class="formula"><strong>每个委派子网分别满足：</strong><br><code>2^(32 − 前缀长度) − 5 ≥ Σ(各环境峰值 IP 预算) + 余量</code></div>
+              <p class="rules"><strong>示例：</strong>4 个生产环境 × 30 IP + 30 IP 余量 = <strong>150 个可用 IP</strong>；加 5 个 Azure 保留地址，需要至少 155 个总地址。</p>
+              <div class="formula"><code>/25</code>：128 − 5 = 123，容量不足。<br><code>/24</code>：256 − 5 = <strong>251，可容纳 150</strong>。<br>30 IP 余量为示例参数，不是官方固定比例。</div>
+              <p class="rules">参考部署的 <code>/24</code> 与端点 <code>/27</code> 均包含容量余量，<strong>不是所有场景的最低网段</strong>。</p>
             </div>
           </div>
-          <div class="notice">双区域 VNet 配对是平台配置要求，不等于业务故障切换已经验收。本 demo 仅在 West US 添加一个 PE 以控制成本；生产要分别验证两区 DNS、后端可达性与故障切换设计。</div>
+          <div class="notice">配对委派子网可用 IP 数应相同；同一子网不用于多个企业策略。启用后不要直接改 CIDR / VNet DNS，应按官方变更流程评估停用、支持及重启窗口。两区后端可达性和灾备仍需独立验收。</div>
         </div>
-        <footer class="footer"><span>官方依据：IP 估算、5 个保留地址、区域对应、子网复用与变更限制。</span><a href="https://learn.microsoft.com/en-us/power-platform/admin/vnet-support-overview#estimating-subnet-size-for-power-platform-environments" target="_blank" rel="noopener">官方网段规划文档 →</a></footer>
+        <footer class="footer"><span>关键区分：运行容器的源 IP ≠ 私有端点的目标 IP；容量按峰值运行实例规划，不按用户一一分配。</span><a href="https://learn.microsoft.com/en-us/power-platform/admin/vnet-support-overview#estimating-subnet-size-for-power-platform-environments" target="_blank" rel="noopener">官方 IP 用途与容量文档 →</a></footer>
       </section>
 
       <section class="slide" id="slide-4" data-slide="4" aria-labelledby="title-4" hidden>
         <header class="heading">
           <div>
             <p class="eyebrow">03 / PERMISSIONS, RUNTIME ACCESS &amp; LICENSING</p>
-            <h1 id="title-4">权限分层：配置的人与使用的人不是同一套授权</h1>
+            <h1 id="title-4">权限分层：配置、运行与数据授权</h1>
             <p class="subtitle">网络路径、Azure 管理面、Entra 管理角色、环境/Dataverse 数据面、后端身份与产品许可分别检查。</p>
           </div>
           <div class="page-label">4 / 5</div>
@@ -384,8 +383,8 @@
                 <tbody>
                   <tr><td>建 VNet、子网、PE、DNS</td><td><strong>对应网络权限 / Network Contributor</strong><small>限制到目标 RG / VNet；创建 Storage 另需该资源写入权限。</small></td></tr>
                   <tr><td>创建企业策略</td><td><strong>RG Contributor 或精简自定义角色</strong><small>显式包含 Microsoft.PowerPlatform/enterprisePolicies 的 read / write；Network Contributor 不自动涵盖这些操作。</small></td></tr>
-                  <tr><td>订阅准备、授予数据角色</td><td><strong>按任务交给对应管理员</strong><small>RP 注册 / 新建 RG 涉及订阅权限。授予 Azure RBAC 需 roleAssignments/write，例如适用范围的 Owner / User Access Administrator / RBAC Administrator。</small></td></tr>
-                  <tr><td>托管环境、关联策略</td><td><strong>Power Platform Administrator + 策略可读</strong><small>按官方前提配置；不同关联人可补策略范围的 Azure Reader。本 demo 的 Global Administrator 为 PIM 临时激活，不是生产默认建议。</small></td></tr>
+                  <tr><td>订阅准备、授予数据角色</td><td><strong>按任务和资源范围授权</strong><small>RP 注册 / 新建 RG 涉及订阅权限。授予 Azure RBAC 需 roleAssignments/write，例如适用范围的 Owner / User Access Administrator / RBAC Administrator。</small></td></tr>
+                  <tr><td>托管环境、关联策略</td><td><strong>Power Platform Administrator + 策略可读</strong><small>不同关联人可补策略范围的 Azure Reader。参考部署使用 PIM 临时激活 Global Administrator；生产优先采用较小的适用角色。</small></td></tr>
                 </tbody>
               </table>
             </div>
@@ -395,14 +394,14 @@
                 <thead><tr><th>层次</th><th>授权与边界</th></tr></thead>
                 <tbody>
                   <tr><td>应用 / 流程使用与制作</td><td><strong>共享访问 + 对应环境角色</strong><small>制作资源按需用 Environment Maker；普通使用者不需要 Azure Owner 或 Global Administrator。</small></td></tr>
-                  <tr><td>Dataverse 表与数据</td><td><strong>实际数据安全角色</strong><small>按应用/表/行权限授权；System Administrator 仅给确需环境数据管理的人。Environment Maker 不自动授予数据权限。</small></td></tr>
-                  <tr><td>私有后端访问</td><td><strong>给“连接的执行身份”授予数据权限</strong><small>只读用 Storage Blob Data Reader，读写按需用 Data Contributor，缩小到账户/容器。Azure 管理角色或 VNet 连通不替代数据授权。</small></td></tr>
-                  <tr><td>托管环境产品许可</td><td><strong>适用 Premium / D365 权益或计费</strong><small>需符合应用、云流、代理的许可条款。Developer Plan 不替代 Managed Environment 中资产运行许可；本 demo 未运行业务资产。</small></td></tr>
+                  <tr><td>Dataverse 表与数据</td><td><strong>实际数据安全角色</strong><small>按应用/表/行权限授权；System Administrator 限于确需数据管理的身份。Environment Maker 不自动授予数据权限。</small></td></tr>
+                  <tr><td>私有后端访问</td><td><strong>连接执行身份的数据面授权</strong><small>只读用 Storage Blob Data Reader，读写按需用 Data Contributor，缩小到账户/容器。Azure 管理角色或 VNet 连通不替代数据授权。</small></td></tr>
+                  <tr><td>托管环境产品许可</td><td><strong>适用 Premium / D365 权益或计费</strong><small>需符合应用、云流、代理的许可条款。Developer Plan 不替代 Managed Environment 中资产运行许可；参考验证未运行业务资产。</small></td></tr>
                 </tbody>
               </table>
             </div>
           </div>
-          <div class="notice"><strong>本次会议诊断身份：</strong>脚本要求活跃的 Power Platform Administrator 或 Global Administrator，并能读取 Azure 网络/端点/存储配置；仅在新增存储上有 Blob Data Reader，用于带身份的公网拒绝对照。<strong>这是管理诊断权限，不应复制给所有终端用户。</strong></div>
+          <div class="notice"><strong>诊断脚本的执行权限：</strong>活跃的 Power Platform Administrator 或 Global Administrator，以及 Azure 网络/端点/存储配置读取权限；测试存储账户上的 Blob Data Reader 用于带身份的公网拒绝对照。<strong>管理诊断身份与普通工作负载使用身份应分离。</strong></div>
           <div class="role-links">
             <a href="https://learn.microsoft.com/en-us/power-platform/admin/database-security" target="_blank" rel="noopener">环境 / Dataverse 角色范围</a>
             <a href="https://learn.microsoft.com/en-us/azure/storage/blobs/assign-azure-role-data-access" target="_blank" rel="noopener">Blob 数据面 RBAC</a>
@@ -415,25 +414,25 @@
 
       <section class="slide" id="slide-5" data-slide="5" aria-labelledby="title-5" hidden>
         <header class="heading">
-          <p class="eyebrow">THANK YOU / DISCUSSION &amp; NEXT STEPS</p>
+          <p class="eyebrow">SUMMARY / VALIDATION SCOPE &amp; NEXT STEPS</p>
           <div class="page-label">5 / 5</div>
         </header>
         <div class="content bookend-content">
-          <h1 class="closing-title" id="title-5">谢谢，欢迎讨论</h1>
-          <p class="cover-lead">配置成功是起点。只有来自环境内的实际私网通信和公网反向对照，才能形成可解释的网络证据链。</p>
+          <h1 class="closing-title" id="title-5">技术总结与后续验证</h1>
+          <p class="cover-lead">配置关联、网络路径和业务访问属于不同验收层次。环境内实际通信、目标网络设置与公网反向对照共同构成协议路径证据。</p>
           <div class="bookend-grid">
             <div class="panel"><div class="bookend-number">已证明</div><h2>West US 私网协议路径</h2><p>来源在委派子网；目标为实际私有端点；DNS、TCP、TLS 与公网拒绝通过。</p></div>
             <div class="panel"><div class="bookend-number">仍需验收</div><h2>业务与双区域可用性</h2><p>连接器 / 插件业务读写、运行许可、East US 后端可达性和故障切换。</p></div>
-            <div class="panel"><div class="bookend-number">下一步</div><h2>落地客户环境</h2><p>对齐企业 IPAM、身份与数据授权、网络治理、成本和独立清理计划。</p></div>
+            <div class="panel"><div class="bookend-number">生产适配</div><h2>企业部署要求</h2><p>企业 IPAM、身份与数据授权、网络治理、成本和独立清理计划。</p></div>
           </div>
           <div class="closing-actions">
             <a href="./sample-private-network-proof.html" data-proof-link target="_blank" rel="noopener">查看脱敏证据示例 →</a>
-            <a href="../README.md">查看演示步骤与复跑说明 →</a>
+            <a href="../README.md">查看部署与验证文档 →</a>
             <a href="https://learn.microsoft.com/en-us/power-platform/admin/vnet-support-setup-configure?pivots=powershell" target="_blank" rel="noopener">官方配置文档 →</a>
           </div>
-          <div class="notice">公开版本不包含真实租户、订阅、账号或运行清单。证据示例经过脱敏，不代替客户环境的现场实测；本地演示可使用 <code>?localDemo=1</code> 打开私有生成报告。</div>
+          <div class="notice">公开版本不包含真实租户、订阅、账号或运行清单。脱敏示例不代表当前环境的验证结果；<code>?localDemo=1</code> 切换为本地生成报告链接，实际验收以运行时间戳和原始证据为准。</div>
         </div>
-        <footer class="footer"><span>最小成本演示：一个 Private Endpoint + Private DNS；资源保留期间持续计费。</span><span>Q &amp; A</span></footer>
+        <footer class="footer"><span>低成本验证目标：一个 Private Endpoint + Private DNS；资源保留期间持续计费。</span><span>架构 · 规划 · 权限 · 验证</span></footer>
       </section>
     </div>
   </main>
@@ -444,7 +443,7 @@
       <button type="button" data-page="1" aria-label="第 2 页：架构和官方配置">2</button>
       <button type="button" data-page="2" aria-label="第 3 页：网段规划">3</button>
       <button type="button" data-page="3" aria-label="第 4 页：权限">4</button>
-      <button type="button" data-page="4" aria-label="第 5 页：封底和讨论">5</button>
+      <button type="button" data-page="4" aria-label="第 5 页：总结与后续验证">5</button>
     </div>
     <span class="counter" id="counter">1 / 5</span>
     <button type="button" id="next" aria-label="下一页">下一页 →</button>

@@ -1,7 +1,7 @@
 # Architecture Diagram
 
-This project is a static HTML/JavaScript presentation and PowerShell/Bicep
-orchestration demo, not a customer business application. The diagrams separate
+This reference implementation combines HTML/JavaScript technical material with
+PowerShell/Bicep orchestration. The diagrams separate
 configuration relationships from the actual West US private diagnostic path.
 
 ## Application Architecture
@@ -78,7 +78,7 @@ stored locally as JSON; the HTML report exposes no access tokens.
 ```mermaid
 flowchart LR
     subgraph PresentationC2["Presentation"]
-        DeckC2["Customer slide deck"]
+        DeckC2["Technical slide deck"]
         EvidencePageC2["Private network proof HTML"]
     end
     subgraph OrchestrationC2["PowerShell Orchestration"]

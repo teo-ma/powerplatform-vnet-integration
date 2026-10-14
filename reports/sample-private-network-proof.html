@@ -84,9 +84,9 @@
 </head>
 <body><main>
   <header><div class="eyebrow">PUBLIC / REDACTED EXAMPLE</div><h1>实际私网协议证据的公开示例</h1>
-    <p>用于说明如何解释诊断结果。账户、租户、订阅、服务域名和请求标识均未公开。</p>
+    <p>记录参考部署的证据结构与验收条件。账户、租户、订阅、服务域名和请求标识均未公开。</p>
   </header>
-  <div class="notice"><strong>这不是你当前环境的现场实测报告。</strong>下面保留历史演示的通用网段与证据结构，不请求任何服务、不重放实时结果。正式验收应在自己的环境运行测试脚本，检查新时间戳和原始 JSON。</div>
+  <div class="notice"><strong>历史证据示例，不代表当前环境的运行状态。</strong>页面仅保留参考部署的通用网段与证据结构，不向任何服务发起请求。实际验收以部署环境内的新测试、运行时间戳和原始 JSON 为依据。</div>
   <section class="grid">
     <div class="card"><div class="label">示例：委派子网来源</div><div class="value">172.20.0.4 / .5</div><p>来源必须实际落在该环境的委派子网内。</p></div>
     <div class="card"><div class="label">示例：私有端点目标</div><div class="value">172.20.1.4:443</div><p>私有 DNS 和直接 TCP 目标应匹配端点 NIC 的真实 IP。</p></div>
@@ -98,5 +98,5 @@
     <li>通过正常域名完成 TLS 握手，检查证书、协议、错误和 CRL 状态。</li>
     <li>确认目标 Public Network Access 为 Disabled，带授权身份的公网请求被拒绝。</li>
   </ol><p><strong>范围：</strong>协议数据包往返，不等同于连接器 / 插件业务对象读写、区域灾备或产品许可验收。</p>
-  <p><a href="./customer-demo-slides.html">返回五页幻灯片</a> · <a href="../README.md">查看配置和复跑说明</a></p></section>
+  <p><a href="./customer-demo-slides.html">查看五页技术幻灯片</a> · <a href="../README.md">查看部署与验证文档</a></p></section>
 </main></body></html>

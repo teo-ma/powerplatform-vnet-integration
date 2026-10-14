@@ -33,11 +33,15 @@ const secretPatterns = [
   /AccountKey\s*=\s*[A-Za-z0-9+/]{30,}={0,2}/i,
   /SharedAccessSignature\s*=\s*[^;\s]*sig=/i,
 ];
+const presenterOnlyCopy = /客户会议|客户演示|会议演示|会前准备|讲解词|演示步骤|现场流程与|Re-run during the meeting|Three-minute meeting walkthrough|Share the local HTML report/i;
 for (const file of tracked) {
   if (forbiddenPaths.some((pattern) => pattern.test(file))) throw new Error(`Private artifact is staged: ${file}`);
   const body = fs.readFileSync(path.join(root, file), "utf8");
   if (secretPatterns.some((pattern) => pattern.test(body))) throw new Error(`Possible secret found in staged file: ${file}`);
   if (privateValues.some((value) => body.includes(value))) throw new Error(`Private local identity or target found in staged file: ${file}`);
+  if (/\.(?:md|html)$/i.test(file) && presenterOnlyCopy.test(body)) {
+    throw new Error(`Public technical material contains presenter-only copy: ${file}`);
+  }
 }
 
 const deckPath = path.join(root, "reports", "customer-demo-slides.html");
@@ -62,3 +66,4 @@ for (const field of ["subscriptionId", "tenantId", "principalId"]) {
   if (example[field] !== "00000000-0000-0000-0000-000000000000") throw new Error("Examples must not publish real identities.");
 }
 console.log(`PASS: ${tracked.length} staged public files; no private runtime artifacts, identity values, or detected secrets; five offline slides and all public links.`);
+console.log("PASS: public documentation and HTML use technical reference copy rather than presenter instructions.");
