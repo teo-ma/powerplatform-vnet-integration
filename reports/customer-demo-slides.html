@@ -103,6 +103,9 @@
     .diagram .tiny{font-size:12px;fill:var(--cp-text-muted)}
     .diagram .private-line{fill:none;stroke:var(--cp-success);stroke-width:3}
     .diagram .control-line{fill:none;stroke:var(--cp-accent);stroke-width:2;stroke-dasharray:6 5}
+    .diagram .active-node{fill:var(--cp-surface);stroke:var(--cp-success);stroke-width:2.5}
+    .diagram .failover-node{fill:var(--cp-surface-soft);stroke:var(--cp-accent);stroke-width:2;stroke-dasharray:6 5}
+    .diagram .failover-line{fill:none;stroke:var(--cp-accent);stroke-width:2.5;stroke-dasharray:7 5}
     .legend{font-size:13px;line-height:1.5;color:var(--cp-text-muted);display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
     .legend strong{color:var(--cp-success)}
     .steps{list-style:none;margin:0;padding:0;counter-reset:step;display:grid;gap:9px}
@@ -239,75 +242,89 @@
         <header class="heading">
           <div>
             <p class="eyebrow">01 / ARCHITECTURE &amp; OFFICIAL SETUP</p>
-            <h1 id="title-2">架构：Power Platform 出站私网连接</h1>
-            <p class="subtitle">已实测 West US 的私网 DNS / TCP / TLS；不是业务读写，也不是把整个 Power Platform 搬入 VNet。</p>
+            <h1 id="title-2">架构：运行时按 Azure region 选择对应 VNet</h1>
+            <p class="subtitle">默认环境运行在 West US 并使用 West US 委派 VNet；平台故障转移到 East US 后，自动改用 East US 委派 VNet。</p>
           </div>
           <div class="page-label">2 / 5</div>
         </header>
         <div class="content">
           <div class="architecture-layout">
             <div class="panel diagram-panel">
-              <h2>参考部署拓扑与实际协议路径</h2>
+              <h2>当前路径与平台故障转移路径</h2>
               <svg class="diagram" viewBox="0 0 780 480" role="img" aria-labelledby="diagram-title diagram-description">
-                <title id="diagram-title">Power Platform 委派子网经私有端点连接公网关闭的 Blob 服务</title>
-                <desc id="diagram-description">参考部署中，West US 源 172.20.0.4 或 172.20.0.5 经私有端点 172.20.1.4 访问 Azure Storage。East US 委派子网参与企业策略配对，未执行故障切换验收。</desc>
+                <title id="diagram-title">Power Platform 运行时根据当前 Azure region 使用对应的区域 VNet</title>
+                <desc id="diagram-description">正常状态下环境运行在 West US，容器使用 West US 委派子网并访问私有端点。Power Platform 自动故障转移到 East US 后，容器改由 East US 委派子网分配地址。VNet 本身不会迁移，East US 后端路径仍需单独建设和验证。</desc>
                 <defs>
                   <marker id="private-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="var(--cp-success)"/></marker>
                   <marker id="control-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="var(--cp-accent)"/></marker>
                 </defs>
-                <rect class="node" x="16" y="8" width="748" height="66" rx="10"/>
-                <text class="label" x="34" y="34">Power Platform Managed Environment · PP VNet Demo</text>
-                <text class="small" x="34" y="57">官方诊断容器执行请求；本机 PowerShell 仅发起管理诊断 API</text>
-                <path class="private-line" d="M152 74 V105 H25 V214 H34" marker-end="url(#private-arrow)"/>
-                <text class="small" x="172" y="108">VNet 出站注入</text>
-                <rect class="region" x="16" y="128" width="546" height="264" rx="14"/>
-                <text class="label" x="34" y="153">West US VNet · 172.20.0.0/16</text>
-                <rect class="node" x="34" y="172" width="220" height="102" rx="10"/>
-                <text class="label" x="48" y="197">Power Platform 委派子网</text>
-                <text class="small" x="48" y="220">172.20.0.0/24</text>
-                <text class="small" x="48" y="243">实测源：172.20.0.4 / .5</text>
-                <text class="tiny" x="48" y="262">专用于 Microsoft.PowerPlatform</text>
-                <rect class="node" x="305" y="172" width="238" height="102" rx="10"/>
-                <text class="label" x="320" y="197">非委派端点子网 /27</text>
-                <text class="small" x="320" y="220">172.20.1.0/27</text>
-                <text class="small" x="320" y="243">Blob PE：172.20.1.4:443</text>
-                <text class="tiny" x="320" y="262">NSG 仅允许源 /24 的 HTTPS</text>
-                <path class="private-line" d="M254 225 H305" marker-end="url(#private-arrow)"/>
-                <text class="tiny" x="262" y="212">TCP</text>
-                <rect class="node" x="586" y="172" width="178" height="102" rx="10"/>
-                <text class="label" x="600" y="197">Azure Storage</text>
-                <text class="small" x="600" y="220">Blob · Standard_LRS</text>
-                <text class="small" x="600" y="243">公网：Disabled</text>
-                <text class="tiny" x="600" y="262">PaaS 服务不放进端点子网</text>
-                <path class="private-line" d="M543 225 H586" marker-end="url(#private-arrow)"/>
-                <text class="tiny" x="570" y="153" text-anchor="middle">Private Link · TLS 1.3</text>
-                <rect class="node" x="305" y="304" width="238" height="65" rx="10"/>
-                <text class="label" x="320" y="328">Private DNS · 已链接 VNet</text>
-                <text class="tiny" x="320" y="350">正常 Blob FQDN → 172.20.1.4</text>
-                <path class="control-line" d="M424 304 V275" marker-end="url(#control-arrow)"/>
-                <text class="small" x="34" y="325">公网反向对照</text>
-                <text class="small" x="34" y="348">有效身份 + 账户范围 Reader</text>
-                <text x="34" y="373" style="fill:var(--cp-danger);font-size:16px;font-weight:700">HTTP 403 · 网络访问被拒绝</text>
-                <rect class="node" x="16" y="413" width="255" height="58" rx="10"/>
-                <text class="label" x="30" y="436">NetworkInjection 企业策略</text>
-                <text class="small" x="30" y="456">geography：unitedstates</text>
-                <rect class="region-secondary" x="313" y="413" width="451" height="58" rx="10"/>
-                <text class="label" x="328" y="436">East US · 172.21.0.0/16</text>
-                <text class="small" x="328" y="456">委派 172.21.0.0/24 · 配对必需，未测灾备</text>
-                <path class="control-line" d="M142 413 V395" marker-end="url(#control-arrow)"/>
-                <path class="control-line" d="M271 442 H312" marker-end="url(#control-arrow)"/>
+                <rect class="node" x="16" y="8" width="748" height="54" rx="10"/>
+                <text class="label" x="34" y="31">Power Platform geography · United States</text>
+                <text class="small" x="34" y="51">环境当前 Azure region 决定运行时使用哪一个同区域委派 VNet</text>
+
+                <path class="private-line" d="M185 62 V91" marker-end="url(#private-arrow)"/>
+                <text class="tiny" x="51" y="82">当前 actual region = westus</text>
+                <rect class="active-node" x="40" y="92" width="290" height="62" rx="10"/>
+                <text class="label" x="55" y="117">当前运行时：West US</text>
+                <text class="small" x="55" y="139">默认路径 · West US 私网协议已实测</text>
+
+                <path class="failover-line" d="M595 62 V91" marker-end="url(#control-arrow)"/>
+                <text class="tiny" x="488" y="82">Power Platform 自动故障转移</text>
+                <rect class="failover-node" x="450" y="92" width="290" height="62" rx="10"/>
+                <text class="label" x="465" y="117">故障转移运行时：East US</text>
+                <text class="small" x="465" y="139">平台控制 · 不是用户按请求手动选择</text>
+
+                <text class="tiny" x="390" y="174" text-anchor="middle">迁移的是 Power Platform 运行时；Azure VNet 不迁移、不重建</text>
+
+                <rect class="region" x="16" y="190" width="360" height="218" rx="14"/>
+                <text class="label" x="31" y="214">West US Azure VNet · 当前使用</text>
+                <text class="small" x="31" y="233">172.20.0.0/16</text>
+                <path class="private-line" d="M185 154 V249" marker-end="url(#private-arrow)"/>
+                <rect class="active-node" x="36" y="250" width="150" height="92" rx="10"/>
+                <text class="label" x="50" y="276">PP 委派子网</text>
+                <text class="small" x="50" y="299">172.20.0.0/24</text>
+                <text class="tiny" x="50" y="322">实测源：.4 / .5</text>
+                <rect class="node" x="216" y="250" width="140" height="92" rx="10"/>
+                <text class="label" x="230" y="276">Blob PE</text>
+                <text class="small" x="230" y="299">172.20.1.4:443</text>
+                <text class="tiny" x="230" y="322">公网 Disabled</text>
+                <path class="private-line" d="M186 296 H216" marker-end="url(#private-arrow)"/>
+                <text class="tiny" x="198" y="284">TLS</text>
+                <rect class="node" x="36" y="356" width="320" height="39" rx="10"/>
+                <text class="tiny" x="50" y="380">Private DNS → PE → Azure Storage · 当前路径已验证</text>
+
+                <rect class="region-secondary" x="404" y="190" width="360" height="218" rx="14"/>
+                <text class="label" x="419" y="214">East US Azure VNet · 故障转移后使用</text>
+                <text class="small" x="419" y="233">172.21.0.0/16</text>
+                <path class="failover-line" d="M595 154 V249" marker-end="url(#control-arrow)"/>
+                <rect class="failover-node" x="424" y="250" width="150" height="92" rx="10"/>
+                <text class="label" x="438" y="276">PP 委派子网</text>
+                <text class="small" x="438" y="299">172.21.0.0/24</text>
+                <text class="tiny" x="438" y="322">故障转移后的源 IP</text>
+                <rect class="failover-node" x="604" y="250" width="140" height="92" rx="10"/>
+                <text class="label" x="618" y="276">私有后端路径</text>
+                <text class="small" x="618" y="299">需可达 East VNet</text>
+                <text class="tiny" x="618" y="322">本参考尚未验收</text>
+                <path class="failover-line" d="M574 296 H604" marker-end="url(#control-arrow)"/>
+                <rect class="node" x="424" y="356" width="320" height="39" rx="10"/>
+                <text class="tiny" x="438" y="380">需独立验证 DNS、路由、防火墙、PE / On-prem 可达性</text>
+
+                <rect class="node" x="246" y="429" width="288" height="40" rx="10"/>
+                <text class="small" x="390" y="454" text-anchor="middle">NetworkInjection 策略同时引用两个区域的 VNet / 子网</text>
+                <path class="control-line" d="M316 429 V416 H196 V408" marker-end="url(#control-arrow)"/>
+                <path class="control-line" d="M464 429 V416 H584 V408" marker-end="url(#control-arrow)"/>
               </svg>
-              <div class="legend"><span><strong>实线：实际私网协议通信</strong></span><span>虚线：策略 / DNS 配置关系</span></div>
+              <div class="legend"><span><strong>绿色实线：当前默认 West US 路径</strong></span><span>玫红虚线：平台故障转移后的 East US 路径 / 策略关系</span></div>
             </div>
             <div class="panel">
-              <h2>官方配置顺序</h2>
+              <h2>区域选择与官方配置顺序</h2>
               <ol class="steps">
-                <li><strong>检查前提和实际区域</strong><br>托管环境、角色和许可；<code>Get-EnvironmentRegion</code> 确认区域配对。</li>
+                <li><strong>检查 geography 和当前 region</strong><br><code>Get-EnvironmentRegion</code> 返回当前承载区域；本参考为 <code>westus</code>。</li>
                 <li><strong>准备 Azure 网络</strong><br>注册 Network / PowerPlatform RP；建配对网络，委派专用子网。</li>
-                <li><strong>创建 NetworkInjection 企业策略</strong><br>location 用 Power Platform geography；引用两区的 VNet / 子网。</li>
+                <li><strong>策略同时引用两个区域</strong><br>location 用 Power Platform geography；配置 West US 和 East US 的 VNet / 子网。</li>
                 <li><strong>确保关联者能读取策略</strong><br>不同关联人补策略范围 Azure Reader，并有 Power Platform 管理权限。</li>
-                <li><strong>关联环境并确认完成</strong><br><code>Enable-SubnetInjection</code> 或管理中心；确认 History 为 Succeeded。</li>
-                <li><strong>另做真正的网络验收</strong><br>从环境内做 DNS / TCP / TLS 和公网拒绝对照，不只看“已关联”。</li>
+                <li><strong>运行时自动选择同区域 VNet</strong><br>当前 West US 使用 West VNet；故障转移到 East US 后自动使用 East VNet。</li>
+                <li><strong>分别验收两区后端可达性</strong><br>双 VNet 只提供两区网络入口，DNS、路由、PE 和 On-prem 路径仍需逐区验证。</li>
               </ol>
               <div class="docs">
                 <span class="doc-title">官方文档 URL（点击打开）</span>
@@ -317,9 +334,9 @@
               </div>
             </div>
           </div>
-          <div class="notice">Private Endpoint / Private DNS 用于参考实现的私有目标验收，并非所有 VNet 场景的固定必选资源。验证范围仅为 West US 实际协议路径，不涵盖业务对象读写或 East US 故障切换。</div>
+          <div class="notice"><strong>关键行为：</strong>正常状态下环境位于 West US，因此使用 West US 委派 VNet；Power Platform 自动故障转移到 East US 后，运行容器改由 East US 委派子网获得 IP。VNet 本身不会迁移。参考部署只证明 West US 私网协议路径，East US 后端和 On-prem 可达性仍需单独建设与验收。</div>
         </div>
-        <footer class="footer"><span>已验证：私网 DNS、TCP 443、TLS 1.3、微软证书与 CRL；公网身份请求 403。</span><a href="./sample-private-network-proof.md" data-proof-link target="_blank" rel="noopener">查看脱敏证据示例 →</a></footer>
+        <footer class="footer"><span>当前：West US 容器源 IP → West US 私有目标；故障转移后：East US 容器源 IP → East US 可达的私有目标。</span><a href="./sample-private-network-proof.md" data-proof-link target="_blank" rel="noopener">查看脱敏证据示例 →</a></footer>
       </section>
 
       <section class="slide" id="slide-3" data-slide="3" aria-labelledby="title-3" hidden>
